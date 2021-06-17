@@ -2,37 +2,34 @@ package main
 
 import (
 	"fmt"
-	"github.com/xuuiao/crontab-jobs/cronjob"
-	"os"
-	"os/signal"
-	"syscall"
+	"sync"
+	"time"
 )
 
 func main() {
-	job := cronjob.NewJob()
-	job.Start()
-	ObserveExitSignal(func(o os.Signal) {
-		if err := job.ShutDown(); err != nil {
-			fmt.Printf("job shutdown failed, err:%s \n", err.Error())
-		}
-	})
+	fmt.Println("start")
+	var mutex = &sync.Mutex{}
+	go mutexFunc1(mutex)
+	go mutexFunc2(mutex)
+	fmt.Println("main wait...")
+	<-time.After(time.Second * 15)
+	fmt.Println("main over")
 }
 
-// ObserveExitSignal 监听系统退出信号
-// 会阻塞当前运行
-func ObserveExitSignal(f func(os.Signal)) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
-	for {
-		s := <-c
-		fmt.Printf("get signal %s \n", s.String())
-		switch s {
-		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-			f(s)
-			return
-		case syscall.SIGHUP:
-		default:
-			return
-		}
-	}
+func mutexFunc1(m *sync.Mutex) {
+	m.Lock()
+	fmt.Println("func1 lock")
+	<-time.After(time.Second * 5)
+	fmt.Println("func1 time out")
+	m.Unlock()
+	fmt.Println("func1 unlock")
+}
+
+func mutexFunc2(m *sync.Mutex) {
+	m.Lock()
+	fmt.Println("func2 lock")
+	<-time.After(time.Second * 5)
+	fmt.Println("func2 time out")
+	m.Unlock()
+	fmt.Println("func2 unlock")
 }

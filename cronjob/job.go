@@ -26,7 +26,7 @@ func (j *jobServer) Start() {
 		body := struct {
 			Size int `json:"size"`
 		}{
-			Size: 500,
+			Size: 800,
 		}
 		bodyStr, _ := json.Marshal(body)
 		request, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyStr))
